@@ -135,6 +135,7 @@ def main_simulation():
     i: str = input("Commencer La simulation ?    ('q' to quit)\n : ")
     while i != "q":
         t1: float = time.time()
+        print("Frame ", sim_frame)
         #
         img_mat: np.matrix = np.asarray(sim.img)/255.0
         # ii: np.matrix = np.moveaxis(img_mat, 0, -1)
@@ -200,6 +201,8 @@ def main_simulation():
             a.current_age -= 10
             # Récupération
             a.current_life = clamp(a.current_life+a.gene.life_recup, 0, a.gene.max_life)
+            #TODO: apprentissage du cerveau
+            pass
             # Mort
             if a.current_energy <= 0 or a.current_age <= 0 or a.current_life <= 0:
                 morts.append(a)
