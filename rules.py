@@ -2,11 +2,11 @@
 rules = {
     # World
     "WorldType": "finite_closed", # "finite_loop", "infinite", 
-    "WorldSize": (2048, 2048),
+    "WorldSize": (3840, 2048),
 
     # Spawn
-    "AgentsSpawnSpots": ["random", 10, 5], # ["random", number of species, number of entities for each species] or  [Circles : (x, y, radius, number of species that will be close enought to reproduce)]
-    "VegetationSpawnSpots": [(1024, 1024, 1024, 100)],
+    "AgentsSpawnSpots": ["random", 15, 3], # ["random", number of species, number of entities for each species] or  [Circles : (x, y, radius, number of species that will be close enought to reproduce)]
+    "VegetationSpawnSpots": [(1024, 1024, 1024, 200)],
 
     # Vegetation
     "VegetationGridSize": 64, # Pour éviter les problèmes, on préferera que ce soit un diviseur de WorldSize x et y

@@ -128,12 +128,14 @@ def main_simulation():
     sim: Simulation = Simulation()
     sim.img = affichage(sim) # Pour avoir une première image surlaquelle 
     #
-    max_compteur: int = 150
     sim_frame: int = 0
-    compteur: int = max_compteur
+    compteur: int = 10
     temps: list = []
-    i: str = input("Commencer La simulation ?    ('q' to quit)\n : ")
-    while i != "q":
+    end_sim: bool = False
+    i: str = input("Nombres d'étapes à calculer ? ('q' to quit)\n : ")
+    if i == "q": end_sim = True
+    else: compteur = int(i)
+    while not end_sim:
         t1: float = time.time()
         print("Frame ", sim_frame)
         #
@@ -238,8 +240,9 @@ def main_simulation():
         sim_frame+=1
         compteur -= 1
         if compteur == 0:
-            i = input(f"Simulation Frame = {sim_frame}\nTemps des calculs (Moyenne)= {sum(temps)/len(temps)} sec\nContinuer La simulation ?    ('q' to quit)\n : ")
-            if i != "q": compteur, temps = max_compteur, []
+            i = input(f"Simulation Frame = {sim_frame}\nTemps des calculs (Moyenne)= {sum(temps)/len(temps)} sec\nNombres d'étapes à calculer ?  ('q' to quit)\n : ")
+            if i != "q": compteur, temps = int(i), []
+            else: end_sim = True
 
 
 if __name__ == "__main__":
