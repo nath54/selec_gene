@@ -176,9 +176,9 @@ def main_simulation():
             #TODO: collisions (nourriture vege)
             cx: int = clamp(a.pos[0]//rules["VegetationGridSize"], 0, rules["WorldSize"][0]//rules["VegetationGridSize"]-1)
             cy: int = clamp(a.pos[1]//rules["VegetationGridSize"], 0, rules["WorldSize"][1]//rules["VegetationGridSize"]-1)
-            if sim.vegetation[cx, cy] > 1:
-                a.current_energy += rules["EnergyRecoverPerVegetation"]*a.gene.eat_vegetation
-                sim.vegetation[cx, cy] -= 1
+            qt: float = clamp(a.gene.num_veg_eat, 0, sim.vegetation[cx, cy])
+            a.current_energy += qt*rules["EnergyRecoverPerVegetation"]*a.gene.eat_vegetation
+            sim.vegetation[cx, cy] -= qt
             #TODO: collisions (nourriture ennemi)
             pass
             #TODO: collisions (attaque ennemi)

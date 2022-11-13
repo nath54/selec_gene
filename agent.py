@@ -24,6 +24,7 @@ class AgentGene:
         # Eating
         self.eat_other_agent: float = random.randint(int(rules["GeneMinEatOthers"]*rules["GeneEODigits"]), int(rules["GeneMaxEatOthers"]*rules["GeneEODigits"]))/rules["GeneEODigits"] # Capacité à absorber les autres agents
         self.eat_vegetation: float = random.randint(int(rules["GeneMinEatVegetation"]*rules["GeneEVDigits"]), int(rules["GeneMaxEatVegetation"]*rules["GeneEVDigits"]))/rules["GeneEVDigits"] # Capacité à absorber la végétation
+        self.num_veg_eat: float = random.randint(int(rules["GeneMinNumVegEat"]*rules["GeneNVEDigits"]), int(rules["GeneMaxNumVegEat"]*rules["GeneNVEDigits"]))/rules["GeneNVEDigits"] # Quantitée de vegetation capable d'absorber par frame
         # Moving
         self.rot_acc: float = random.randint(int(rules["GeneMinRotAcc"]*rules["GeneRotAccDigits"]), int(rules["GeneMaxRotAcc"]*rules["GeneRotAccDigits"]))/rules["GeneRotAccDigits"]
         self.dir_acc: float = random.randint(int(rules["GeneMinDirAcc"]*rules["GeneDADigits"]), int(rules["GeneMaxDirAcc"]*rules["GeneDADigits"]))/rules["GeneDADigits"]
@@ -77,6 +78,10 @@ def new_gene_from(lst_parents: list) -> AgentGene:
         sum([x.eat_vegetation for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/1000.0,
         rules["GeneMinEatVegetation"], rules["GeneMaxEatVegetation"])
+    new_agent.num_veg_eat = clamp(
+        sum([x.num_veg_eat for x in lst_parents])/float(len(lst_parents))
+        + random.randint(-100, 100)/1000.0,
+        rules["GeneMinNumVegEat"], rules["GeneMaxNumVegEat"])
     #
     new_agent.rot_acc = clamp(
         sum([x.rot_acc for x in lst_parents])/float(len(lst_parents))
@@ -125,11 +130,12 @@ def new_gene_from(lst_parents: list) -> AgentGene:
 
 def gene_dist(a: AgentGene , b: AgentGene) -> float:
         dist: float = 0.0
-        dist += abs(a.aging-b.aging)/100.0 # 0 - 10
-        dist += abs(a.life_recup-b.life_recup) # 0 - 1
-        dist += abs(a.reproduction_method-b.reproduction_method)*10 # 0 - 40
+        dist += abs(a.aging-b.aging)/100.0
+        dist += abs(a.life_recup-b.life_recup)
+        dist += abs(a.reproduction_method-b.reproduction_method)*10
         dist += abs(a.eat_other_agent-b.eat_other_agent)*10 # 0 - 20
         dist += abs(a.eat_vegetation-b.eat_vegetation)*10 # 0 - 20
+        dist += abs(a.num_veg_eat - b.num_veg_eat)*2 # 0 - 10
         dist += abs(a.rot_acc - b.rot_acc) # 0 - 10
         dist += abs(a.dir_acc - b.dir_acc) # 0 - 10
         dist += abs(a.global_acc - b.global_acc) # 0 - 10
@@ -138,7 +144,6 @@ def gene_dist(a: AgentGene , b: AgentGene) -> float:
         dist += abs(a.color[0] - b.color[0])/100.0 # 0 - 2.55
         dist += abs(a.color[1] - b.color[1])/100.0 # 0 - 2.55
         dist += abs(a.color[2] - b.color[2])/100.0 # 0 - 2.55
-        # tot : 0 - 227.65
         return dist
 
 

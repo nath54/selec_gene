@@ -6,7 +6,7 @@ rules = {
 
     # Spawn
     "AgentsSpawnSpots": ["random", 15, 3], # ["random", number of species, number of entities for each species] or  [Circles : (x, y, radius, number of species that will be close enought to reproduce)]
-    "VegetationSpawnSpots": [(1024, 1024, 1024, 200)],
+    "VegetationSpawnSpots": [(3840/2, 2048/2, 3840/2, 6000)],
 
     # Vegetation
     "VegetationGridSize": 64, # Pour éviter les problèmes, on préferera que ce soit un diviseur de WorldSize x et y
@@ -19,7 +19,7 @@ rules = {
 
     # Reproduction
     "GeneDistSameSpecie": 10.0,
-    "ReproductionMinAge": 0.2, # L'âge minimum pour se reproduire
+    "ReproductionMinAge": 0.1, # L'âge minimum pour se reproduire
     "ReproductionMaxAge": 0.8, # l'âge maximal pour se reproduire
     "SoloReproductionEnergy": 0.85, # L'énergie dépensée pour faire un enfant
     "BabySpawnDistance": 30,
@@ -63,6 +63,10 @@ rules = {
     "GeneMinEatVegetation": 0.5,
     "GeneMaxEatVegetation": 2.0,
     "GeneEVDigits": 100.0,
+    ## NumVegEat
+    "GeneMinNumVegEat": 0.5,
+    "GeneMaxNumVegEat": 5.0,
+    "GeneNVEDigits": 100.0,
     ## Rot Acc
     "GeneMinRotAcc": 0.0,
     "GeneMaxRotAcc": 10.0,
