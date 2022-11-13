@@ -1,5 +1,8 @@
 *.png
 *.pyc
+__pycache__
 __pycache__/*
 __pycache__/agents.cpython-310.pyc
 __pycache__/rules.cpython-310.pyc
+simulations/*
+simulations
