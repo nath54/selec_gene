@@ -15,31 +15,31 @@ et des caractéristiques qui évoluent (cerveau)
 class AgentGene:
     def __init__(self):
         # Health
-        self.max_energy: float = random.randint(50, 1000)/10.0
-        self.aging: float = random.randint(10, 10000)/10.0
-        self.max_life: float = random.randint(10, 10000)/10.0
-        self.life_recup: float = random.randint(10, 1000)/1000.0
+        self.max_energy: float = random.randint(int(rules["GeneMinEnergy"]*rules["GeneEDigits"]), int(rules["GeneMaxEnergy"]*rules["GeneEDigits"]))/rules["GeneEDigits"]
+        self.aging: float = random.randint(int(rules["GeneMinAging"]*rules["GeneADigits"]), int(rules["GeneMaxAging"]*rules["GeneADigits"]))/rules["GeneADigits"]
+        self.max_life: float = random.randint(int(rules["GeneMinMaxLife"]*rules["GeneMLDigits"]), int(rules["GeneMaxMaxLife"]*rules["GeneMLDigits"]))/rules["GeneMLDigits"]
+        self.life_recup: float = random.randint(int(rules["GeneMinLifeRecup"]*rules["GeneLRecDigits"]), int(rules["GeneMaxLifeRecup"]*rules["GeneLRecDigits"]))/rules["GeneLRecDigits"]
         # Reproduction
-        self.reproduction_method: float = random.randint(0, 100)/100.0 # La valeur entière de cette var détermine le nombre d'individus qu'il faut pour 
+        self.reproduction_method: float = random.randint(int(rules["GeneMinReproductionNumber"]*rules["GeneRNDigits"]), int(rules["GeneMaxReproductionNumber"]*rules["GeneRNDigits"]))/rules["GeneRNDigits"] # La valeur entière de cette var détermine le nombre d'individus qu'il faut pour 
         # Eating
-        self.eat_other_agent: float = random.randint(0, 200)/100.0 # Capacité à absorber les autres agents
-        self.eat_vegetation: float = random.randint(50, 200)/100.0 # Capacité à absorber la végétation
+        self.eat_other_agent: float = random.randint(int(rules["GeneMinEatOthers"]*rules["GeneEODigits"]), int(rules["GeneMaxEatOthers"]*rules["GeneEODigits"]))/rules["GeneEODigits"] # Capacité à absorber les autres agents
+        self.eat_vegetation: float = random.randint(int(rules["GeneMinEatVegetation"]*rules["GeneEVDigits"]), int(rules["GeneMaxEatVegetation"]*rules["GeneEVDigits"]))/rules["GeneEVDigits"] # Capacité à absorber la végétation
         # Moving
-        self.rot_acc: float = random.randint(0, 100)/10.0
-        self.dir_acc: float = random.randint(0, 100)/10.0
-        self.global_acc: float = random.randint(0, 100)/10.0
+        self.rot_acc: float = random.randint(int(rules["GeneMinRotAcc"]*rules["GeneRotAccDigits"]), int(rules["GeneMaxRotAcc"]*rules["GeneRotAccDigits"]))/rules["GeneRotAccDigits"]
+        self.dir_acc: float = random.randint(int(rules["GeneMinDirAcc"]*rules["GeneDADigits"]), int(rules["GeneMaxDirAcc"]*rules["GeneDADigits"]))/rules["GeneDADigits"]
+        self.global_acc: float = random.randint(int(rules["GeneMinGlobalAcc"]*rules["GeneGADigits"]), int(rules["GeneMaxGlobalAcc"]*rules["GeneGADigits"]))/rules["GeneGADigits"]
         # Brain
         # Brain - Structure
-        self.braindepth: int = random.randint(2, 4)
-        self.avglayersize: int = random.randint(1, 15)
+        self.braindepth: int = random.randint(int(rules["GeneMinBrainDepth"]), int(rules["GeneMaxBrainDepth"]))
+        self.avglayersize: int = random.randint(int(rules["GeneMinAvgLayerSize"]), int(rules["GeneMaxAvgLayerSize"]))
         self.variance: float = random.randint(0, int(self.avglayersize*0.5))
         self.brain_layers: list = [
             max(1, self.avglayersize+random.randint(-self.variance, self.variance))
             for _ in range(self.braindepth)
         ]
         # Brain - Evolution
-        self.freq_learning: float = random.randint(0, 100)/100.0 # 0 = n'apprend jamais, 1 = apprend tout le temps
-        self.learning_rate: float = random.randint(1, 100000)/100000.0 # amplitude des changements lors d'un apprentissage
+        self.freq_learning: float = random.randint(int(rules["GeneMinFreqLearning"]*rules["GeneFLDigits"]), int(rules["GeneMaxFreqLearning"]*rules["GeneFLDigits"]))/rules["GeneFLDigits"] # 0 = n'apprend jamais, 1 = apprend tout le temps
+        self.learning_rate: float = random.randint(int(rules["GeneMinLearningRate"]*rules["GeneLRDigits"]), int(rules["GeneMaxLearningRate"]*rules["GeneLRDigits"]))/rules["GeneLRDigits"] # amplitude des changements lors d'un apprentissage
         # Body
         self.size: float = self.max_energy*random.randint(50, 150)/1000.0
         self.color: tuple = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))

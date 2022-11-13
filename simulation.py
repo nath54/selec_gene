@@ -172,11 +172,11 @@ def main_simulation():
                 clamp(a.pos[1], a.gene.size, rules["WorldSize"][1]-a.gene.size)
             elif rules["WorldType"] == "finite_loop":
                 a.pos[0],a.pos[1] = loop(a.pos[0], a.pos[1], rules["WorldSize"][0], rules["WorldSize"][1])
-            #TODO: collisions (nourriture vege)v
+            #TODO: collisions (nourriture vege)
             cx: int = clamp(a.pos[0]//rules["VegetationGridSize"], 0, rules["WorldSize"][0]//rules["VegetationGridSize"]-1)
             cy: int = clamp(a.pos[1]//rules["VegetationGridSize"], 0, rules["WorldSize"][1]//rules["VegetationGridSize"]-1)
             if sim.vegetation[cx, cy] > 1:
-                a.current_energy += 10.0*a.gene.eat_vegetation
+                a.current_energy += rules["EnergyRecoverPerVegetation"]*a.gene.eat_vegetation
                 sim.vegetation[cx, cy] -= 1
             #TODO: collisions (nourriture ennemi)
             pass
@@ -189,16 +189,16 @@ def main_simulation():
                     ng: AgentGene = new_gene_from([a.gene])
                     nb: AgentBrain = AgentBrain(ng.brain_layers)
                     nag: Agent = Agent(ng, nb)
-                    nag.pos = [a.pos[0]+random.randint(-30, 30), a.pos[1]+random.randint(-30, 30)]
+                    nag.pos = [a.pos[0]+random.randint(-rules["BabySpawnDistance"], rules["BabySpawnDistance"]), a.pos[1]+random.randint(-rules["BabySpawnDistance"], rules["BabySpawnDistance"])]
                     babies.append(nag)
                     #
                     a.current_energy -= a.gene.max_energy*rules["SoloReproductionEnergy"]
             else:
                 pass
             # Diminution d'énergie
-            a.current_energy -= 10
+            a.current_energy -= rules["BaseEnergyLossPerFrame"]
             # Diminution de l'âge
-            a.current_age -= 10
+            a.current_age -= rules["BaseAgingLossPerFrame"]
             # Récupération
             a.current_life = clamp(a.current_life+a.gene.life_recup, 0, a.gene.max_life)
             #TODO: apprentissage du cerveau
