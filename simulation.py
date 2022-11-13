@@ -30,7 +30,7 @@ class Simulation:
                     g: AgentGene = new_gene_from([main_gene])
                     b: AgentBrain = AgentBrain(g.brain_layers)
                     ag: Agent = Agent(g,b)
-                    ag.pos = (x2, y2)
+                    ag.pos = [x2, y2]
                     self.agents.append(ag)
         else:
             for c in rules["AgentsSpawnSpots"]:
@@ -44,7 +44,7 @@ class Simulation:
                     g: AgentGene = new_gene_from([main_gene])
                     b: AgentBrain = AgentBrain(g.brain_layers)
                     ag: Agent = Agent(g,b)
-                    ag.pos = (x2, y2)
+                    ag.pos = [x2, y2]
                     self.agents.append(ag)
         # On crée la végétation
         for c in rules["VegetationSpawnSpots"]:
@@ -64,7 +64,7 @@ def affichage(sim: Simulation) -> Image:
     # On affiche la végétation
     for x in range(sim.vegetation.shape[0]):
         for y in range(sim.vegetation.shape[1]):
-            im.rectangle([(int(x*s), int(y*s)), (int((x+1)*s), int((y+1)*s))], fill=(0,int(sim.vegetation[x,y]/rules["VegetationGridMax"]*255),0))
+            im.rectangle([(int(x*s), int(y*s)), (int((x+1)*s), int((y+1)*s))], fill=(0,int(sim.vegetation[x,y]/rules["VegetationGridMax"]*100),0))
     # On affiche les agents
     for a in sim.agents:
         b: float = 0.7
@@ -86,7 +86,7 @@ def get_submatr(m: np.matrix, x: int, y: int, tx:int, ty:int) -> np.matrix:
     if x > 0 and xtx < m.shape[0] and y > 0 and yty < m.shape[1]: # Le cas parfait
         return m[x:xtx, y:yty]
     #
-    nm: np.matrix = np.zeros([tx, ty])
+    nm: np.matrix = np.zeros([tx, ty, 3])
     # Cas 0 : 
     if (xtx < 0) or (yty < 0) or (x > m.shape[0]) or (y > m.shape[1]):
         return nm
@@ -128,25 +128,86 @@ def main_simulation():
     sim: Simulation = Simulation()
     sim.img = affichage(sim) # Pour avoir une première image surlaquelle 
     #
+    max_compteur: int = 150
     sim_frame: int = 0
-    compteur: int = 50
+    compteur: int = max_compteur
     temps: list = []
     i: str = input("Commencer La simulation ?    ('q' to quit)\n : ")
     while i != "q":
         t1: float = time.time()
         #
-        img_mat: np.matrix = np.asarray(sim.img)
-        ii: np.matrix = np.moveaxis(img_mat, 0, -1)
+        img_mat: np.matrix = np.asarray(sim.img)/255.0
+        # ii: np.matrix = np.moveaxis(img_mat, 0, -1)
         # On bouge les agents
-        for a in sim.agents:
+        morts: list = []
+        babies: list = []
+        for j in range(len(sim.agents)):
+            a: Agent = sim.agents[j]
             # Vision: récuperer l'image 
             i: np.matrix = get_submatr(img_mat, a.pos[0]-rules["VisionSize"][0]/2, a.pos[1]-rules["VisionSize"][1]/2, rules["VisionSize"][0], rules["VisionSize"][1])
             i = np.moveaxis(i, -1, 0)
-            t: torch.Tensor = torch.zeros((1, 3, rules["VisionSize"][0], rules["VisionSize"][1]))
-            t[0] = torch.from_numpy(i)
+            t:torch.Tensor = torch.from_numpy(i).float()
             res: torch.Tensor = a.brain.forward(t)
-            print("test : ", res)
-            #TODO: collisions
+            # On "bouge" l'agent en fonction de ses décisions
+            a.angle += a.gene.rot_acc * float(res[0])
+            a.directionnal_velocity += a.gene.dir_acc * float(res[1])
+            a.global_velocity[0] += a.gene.global_acc * float(res[2])
+            a.global_velocity[1] += a.gene.global_acc * float(res[3])
+            a.sentiment = float(res[4])
+            # Restriction de la vitesse
+            # max speed
+            a.global_velocity[0] = clamp(a.global_velocity[0], -a.max_speed, a.max_speed)
+            a.global_velocity[1] = clamp(a.global_velocity[1], -a.max_speed, a.max_speed)
+            a.directionnal_velocity = clamp(a.directionnal_velocity, -a.max_speed, a.max_speed)
+            # friction
+            a.global_velocity[0]*=rules["WorldFriction"]
+            a.global_velocity[1]*=rules["WorldFriction"]
+            a.directionnal_velocity*=rules["WorldFriction"]
+            # Mouvement
+            a.pos[0]+=int(a.global_velocity[0]+a.directionnal_velocity*math.cos(a.angle))
+            a.pos[1]+=int(a.global_velocity[1]+a.directionnal_velocity*math.sin(a.angle))
+            if rules["WorldType"] == "finite_closed":
+                clamp(a.pos[0], a.gene.size, rules["WorldSize"][0]-a.gene.size)
+                clamp(a.pos[1], a.gene.size, rules["WorldSize"][1]-a.gene.size)
+            elif rules["WorldType"] == "finite_loop":
+                a.pos[0],a.pos[1] = loop(a.pos[0], a.pos[1], rules["WorldSize"][0], rules["WorldSize"][1])
+            #TODO: collisions (nourriture vege)v
+            cx: int = clamp(a.pos[0]//rules["VegetationGridSize"], 0, rules["WorldSize"][0]//rules["VegetationGridSize"]-1)
+            cy: int = clamp(a.pos[1]//rules["VegetationGridSize"], 0, rules["WorldSize"][1]//rules["VegetationGridSize"]-1)
+            if sim.vegetation[cx, cy] > 1:
+                a.current_energy += 10.0*a.gene.eat_vegetation
+                sim.vegetation[cx, cy] -= 1
+            #TODO: collisions (nourriture ennemi)
+            pass
+            #TODO: collisions (attaque ennemi)
+            pass
+            #TODO: collisions (reproduction)
+            if math.ceil(a.gene.reproduction_method)==1:
+                age_prop: float = 1.0-(a.current_age/a.gene.aging)
+                if age_prop >= rules["ReproductionMinAge"] and age_prop <= rules["ReproductionMaxAge"] and a.current_energy/a.gene.max_energy >= rules["SoloReproductionEnergy"]:
+                    ng: AgentGene = new_gene_from([a.gene])
+                    nb: AgentBrain = AgentBrain(ng.brain_layers)
+                    nag: Agent = Agent(ng, nb)
+                    nag.pos = [a.pos[0]+random.randint(-30, 30), a.pos[1]+random.randint(-30, 30)]
+                    babies.append(nag)
+                    #
+                    a.current_energy -= a.gene.max_energy*rules["SoloReproductionEnergy"]
+            else:
+                pass
+            # Diminution d'énergie
+            a.current_energy -= 10
+            # Diminution de l'âge
+            a.current_age -= 10
+            # Récupération
+            a.current_life = clamp(a.current_life+a.gene.life_recup, 0, a.gene.max_life)
+            # Mort
+            if a.current_energy <= 0 or a.current_age <= 0 or a.current_life <= 0:
+                morts.append(a)
+        # Les morts disparaissent
+        for ma in morts:
+            sim.agents.remove(ma)
+        # Les bébés apparaissent
+        sim.agents += babies
         # On fait pousser la végétation
         veg: np.matrix = np.copy(sim.vegetation)*rules["VegetationReproductionCell"]
         for x in range(veg.shape[0]):
@@ -175,8 +236,7 @@ def main_simulation():
         compteur -= 1
         if compteur == 0:
             i = input(f"Simulation Frame = {sim_frame}\nTemps des calculs (Moyenne)= {sum(temps)/len(temps)} sec\nContinuer La simulation ?    ('q' to quit)\n : ")
-            if i != "q": compteur, temps = 50, []
-
+            if i != "q": compteur, temps = max_compteur, []
 
 
 if __name__ == "__main__":

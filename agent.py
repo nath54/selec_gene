@@ -12,26 +12,25 @@ Idée : Chaque agent aura des caractéristiques fixes (physiques)
 et des caractéristiques qui évoluent (cerveau)
 """
 
-
-
 class AgentGene:
     def __init__(self):
         # Health
         self.max_energy: float = random.randint(50, 1000)/10.0
         self.aging: float = random.randint(10, 10000)/10.0
         self.max_life: float = random.randint(10, 10000)/10.0
+        self.life_recup: float = random.randint(10, 1000)/1000.0
         # Reproduction
-        self.reproduction_method: float = random.randint(100, 400)/100.0 # La valeur entière de cette var détermine le nombre d'individus qu'il faut pour 
+        self.reproduction_method: float = random.randint(0, 100)/100.0 # La valeur entière de cette var détermine le nombre d'individus qu'il faut pour 
         # Eating
         self.eat_other_agent: float = random.randint(0, 200)/100.0 # Capacité à absorber les autres agents
-        self.eat_vegetation: float = random.randint(0, 200)/100.0 # Capacité à absorber la végétation
+        self.eat_vegetation: float = random.randint(50, 200)/100.0 # Capacité à absorber la végétation
         # Moving
         self.rot_acc: float = random.randint(0, 100)/10.0
         self.dir_acc: float = random.randint(0, 100)/10.0
         self.global_acc: float = random.randint(0, 100)/10.0
         # Brain
         # Brain - Structure
-        self.braindepth: int = random.randint(1, 3)
+        self.braindepth: int = random.randint(2, 4)
         self.avglayersize: int = random.randint(1, 15)
         self.variance: float = random.randint(0, int(self.avglayersize*0.5))
         self.brain_layers: list = [
@@ -60,11 +59,15 @@ def new_gene_from(lst_parents: list) -> AgentGene:
         sum([x.max_life for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/10.0,
         5, 50000)
+    new_agent.life_recup = clamp(
+        sum([x.life_recup for x in lst_parents])/float(len(lst_parents))
+        + random.randint(-100, 100)/1000.0,
+        0, 1)
     #
     new_agent.reproduction_method = clamp(
         sum([x.reproduction_method for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/1000.0,
-        0, 4)
+        0, 1)
     #
     new_agent.eat_other_agent = clamp(
         sum([x.eat_other_agent for x in lst_parents])/float(len(lst_parents))
@@ -91,7 +94,7 @@ def new_gene_from(lst_parents: list) -> AgentGene:
     new_agent.braindepth = clamp(
         int(sum([x.braindepth for x in lst_parents])/float(len(lst_parents))
         +random.randint(-100, 100)/100.0),
-        1, 3
+        2, 5
     )
     new_agent.avglayersize = clamp(
         int(sum([x.avglayersize for x in lst_parents])/float(len(lst_parents))
@@ -130,6 +133,7 @@ def new_gene_from(lst_parents: list) -> AgentGene:
 def gene_dist(a: AgentGene , b: AgentGene) -> float:
         dist: float = 0.0
         dist += abs(a.aging-b.aging)/100.0 # 0 - 10
+        dist += abs(a.life_recup-b.life_recup) # 0 - 1
         dist += abs(a.reproduction_method-b.reproduction_method)*10 # 0 - 40
         dist += abs(a.eat_other_agent-b.eat_other_agent)*10 # 0 - 20
         dist += abs(a.eat_vegetation-b.eat_vegetation)*10 # 0 - 20
@@ -148,13 +152,14 @@ def gene_dist(a: AgentGene , b: AgentGene) -> float:
 class AgentBrain(nn.Module):
     def __init__(self, dims):
         super(AgentBrain, self).__init__()
-        self.vue: nn.Conv2d = nn.Conv2d(3, dims[0], int(rules["VisionSize"][0]/10))
-        self.flat: nn.Flatten = nn.Flatten()
+        ks: int = rules["VisionSize"][0]//10
+        self.vue: nn.Conv2d = nn.Conv2d(3, 1, ks)
+        self.prelin: nn.Linear = nn.Linear( ((rules["VisionSize"][0]+1)-ks)*((rules["VisionSize"][1]+1)-ks), dims[0])
         #
         arr = []
         for i in range(len(dims)-1):
             arr.append( nn.Linear(dims[i], dims[i+1]) )
-        self.lins: nn.ModuleList = nn.ModuleList(arr)
+        self.lins: nn.Sequential = nn.Sequential(*arr)
         # Doit retourner :
         # l'accélération rotationnelle (1) -> [-1, 1]
         # l'accélération directionnelle (1) -> [-1, 1]
@@ -163,30 +168,44 @@ class AgentBrain(nn.Module):
         self.out_lin: nn.Linear = nn.Linear(dims[-1], 5)
         self.remap: nn.Softsign = nn.Softsign()
         #
+        #print(self)
     
     def forward(self, X: torch.Tensor) -> torch.Tensor:
+        #print("DEB FORWARD")
+        #print("1) X.shape = ", X.shape)
         X = self.vue(X)
-        X = self.flat(X)
+        #print("2) X.shape = ", X.shape)
+        X = torch.flatten(X)
+        #print("3) X.shape = ", X.shape)
+        X = self.prelin(X)
+        #print("4) X.shape = ", X.shape)
         X = self.lins.forward(X)
+        #print("5) X.shape = ", X.shape)
         X = self.out_lin(X)
+        #print("6) X.shape = ", X.shape)
         X = self.remap(X)
+        #print("7) X.shape = ", X.shape)
+        #print("END FORWARD")
         return X
 
 
 class Agent:
     def __init__(self, gene: AgentGene, brain: AgentBrain) -> None:
-        # Position and mouvement
-        self.pos: tuple = (0.0, 0.0)
-        self.angle: float = random.uniform(0, 2*math.pi)   # En radians
-        self.directionnal_velocity: float = 0.0
-        self.global_velocity: float = 0.0
-        # Health
-        self.current_energy: float = 0.0
-        self.current_age: float = 0.0
         # genes
         self.gene: AgentGene = gene
         # brain
         self.brain: AgentBrain = brain
+        # Position and mouvement
+        self.pos: list = [0.0, 0.0]
+        self.angle: float = random.uniform(0, 2*math.pi)   # En radians
+        self.directionnal_velocity: float = 0.0
+        self.global_velocity: list = [0.0, 0.0]
+        self.max_speed: float = 10.0 * (10.0/(self.gene.size))
+        #print("max speed : ", self.max_speed)
+        # Health
+        self.current_energy: float = gene.max_energy
+        self.current_age: float = gene.aging
+        self.current_life: float = gene.max_life
         # sentiment
         self.sentiment = 0 # (-1 ~ -0.4) = aggressif, (-0.4 ~ 0.4)  neutre, (0.4 ~ 0.7) = amical, (0.7 ~ 1) = reproduction
         

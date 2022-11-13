@@ -5,7 +5,7 @@ rules = {
     "WorldSize": (2048, 2048),
 
     # Spawn
-    "AgentsSpawnSpots": ["random", 20, 10], # ["random", number of species, number of entities for each species] or  [Circles : (x, y, radius, number of species that will be close enought to reproduce)]
+    "AgentsSpawnSpots": ["random", 10, 5], # ["random", number of species, number of entities for each species] or  [Circles : (x, y, radius, number of species that will be close enought to reproduce)]
     "VegetationSpawnSpots": [(0, 0, 2048, 1000)],
 
     # Vegetation
@@ -19,6 +19,12 @@ rules = {
 
     # Reproduction
     "GeneDistSameSpecie": 10.0,
+    "ReproductionMinAge": 0.1, # L'âge minimum pour se reproduire
+    "ReproductionMaxAge": 0.8, # l'âge maximal pour se reproduire
+    "SoloReproductionEnergy": 0.7, # L'énergie dépensée pour faire un enfant
+
+    # World friction
+    "WorldFriction": 0.99 # Les vitesses sont multipliées par la friction chaque frame
 }
 
 
