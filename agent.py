@@ -91,16 +91,14 @@ def new_gene_from(lst_parents: list) -> AgentGene:
         + random.randint(-100, 100)/1000.0,
         rules["GeneMinGlobalAcc"], rules["GeneMaxGlobalAcc"])
     #
-    new_agent.braindepth = clamp(
+    new_agent.braindepth = int(clamp(
         int(sum([x.braindepth for x in lst_parents])/float(len(lst_parents))
         +random.randint(-100, 100)/100.0),
-        rules["GeneMinBrainDepth"], rules["GeneMaxBrainDepth"])
-    )
-    new_agent.avglayersize = clamp(
+        rules["GeneMinBrainDepth"], rules["GeneMaxBrainDepth"]))
+    new_agent.avglayersize = int(clamp(
         int(sum([x.avglayersize for x in lst_parents])/float(len(lst_parents))
         +random.randint(-100, 100)/100.0),
-        rules["GeneMinAvgLayerSize"], rules["GeneMaxAvgLayerSize"])
-    )
+        rules["GeneMinAvgLayerSize"], rules["GeneMaxAvgLayerSize"]))
     new_agent.variance = random.randint(0, int(new_agent.avglayersize*0.5))
     new_agent.brain_layers = [
             max(1, new_agent.avglayersize+random.randint(-new_agent.variance, new_agent.variance))
