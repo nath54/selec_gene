@@ -19,9 +19,9 @@ rules = {
 
     # Reproduction
     "GeneDistSameSpecie": 10.0,
-    "ReproductionMinAge": 0.1, # L'âge minimum pour se reproduire
+    "ReproductionMinAge": 0.2, # L'âge minimum pour se reproduire
     "ReproductionMaxAge": 0.8, # l'âge maximal pour se reproduire
-    "SoloReproductionEnergy": 0.7, # L'énergie dépensée pour faire un enfant
+    "SoloReproductionEnergy": 0.85, # L'énergie dépensée pour faire un enfant
     "BabySpawnDistance": 30,
 
     # World friction
@@ -36,8 +36,8 @@ rules = {
 
     # Min-Max agent gene parameters
     ## Energy
-    "GeneMinEnergy": 5.0,
-    "GeneMaxEnergy": 100.0,
+    "GeneMinEnergy": 50.0,
+    "GeneMaxEnergy": 500.0,
     "GeneEDigits": 10.0,
     ## Aging
     "GeneMinAging": 5.0,

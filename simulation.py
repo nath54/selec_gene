@@ -137,7 +137,6 @@ def main_simulation():
     else: compteur = int(i)
     while not end_sim:
         t1: float = time.time()
-        print("Frame ", sim_frame)
         #
         img_mat: np.matrix = np.asarray(sim.img)/255.0
         # ii: np.matrix = np.moveaxis(img_mat, 0, -1)
@@ -236,6 +235,7 @@ def main_simulation():
         sim.img.save("simulations/"+name+"/frame"+str(sim_frame)+".png")
         #
         t2: float = time.time()
+        print("Frame ", sim_frame, "/", compteur, " - tps calcul+affichage : ", t2-t1, "sec  - nb entities : ", len(sim.agents))
         temps.append(t2-t1)
         sim_frame+=1
         compteur -= 1

@@ -50,63 +50,58 @@ def new_gene_from(lst_parents: list) -> AgentGene:
     new_agent.max_energy = clamp(
         sum([x.max_energy for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/10.0,
-        5, 50000)
+        rules["GeneMinEnergy"], rules["GeneMaxEnergy"])
     new_agent.aging = clamp(
         sum([x.aging for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/10.0,
-        5, 50000)
+        rules["GeneMinAging"], rules["GeneMaxAging"])
     new_agent.max_life = clamp(
         sum([x.max_life for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/10.0,
-        5, 50000)
+        rules["GeneMinMaxLife"], rules["GeneMaxMaxLife"])
     new_agent.life_recup = clamp(
         sum([x.life_recup for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/1000.0,
-        0, 1)
+        rules["GeneMinLifeRecup"], rules["GeneMaxLifeRecup"])
     #
     new_agent.reproduction_method = clamp(
         sum([x.reproduction_method for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/1000.0,
-        0, 1)
+        rules["GeneMinReproductionNumber"], rules["GeneMaxReproductionNumber"])
     #
     new_agent.eat_other_agent = clamp(
         sum([x.eat_other_agent for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/1000.0,
-        0, 2)
+        rules["GeneMinEatOthers"], rules["GeneMaxEatOthers"])
     new_agent.eat_vegetation = clamp(
         sum([x.eat_vegetation for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/1000.0,
-        0, 2)
+        rules["GeneMinEatVegetation"], rules["GeneMaxEatVegetation"])
     #
     new_agent.rot_acc = clamp(
         sum([x.rot_acc for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/1000.0,
-        0, 10)
+        rules["GeneMinRotAcc"], rules["GeneMaxRotAcc"])
     new_agent.dir_acc = clamp(
         sum([x.dir_acc for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/1000.0,
-        0, 10)
+        rules["GeneMinDirAcc"], rules["GeneMaxDirAcc"])
     new_agent.global_acc = clamp(
         sum([x.global_acc for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/1000.0,
-        0, 10)
+        rules["GeneMinGlobalAcc"], rules["GeneMaxGlobalAcc"])
     #
     new_agent.braindepth = clamp(
         int(sum([x.braindepth for x in lst_parents])/float(len(lst_parents))
         +random.randint(-100, 100)/100.0),
-        2, 5
+        rules["GeneMinBrainDepth"], rules["GeneMaxBrainDepth"])
     )
     new_agent.avglayersize = clamp(
         int(sum([x.avglayersize for x in lst_parents])/float(len(lst_parents))
         +random.randint(-100, 100)/100.0),
-        1, 15
+        rules["GeneMinAvgLayerSize"], rules["GeneMaxAvgLayerSize"])
     )
     new_agent.variance = random.randint(0, int(new_agent.avglayersize*0.5))
-    new_agent.avglayersize = clamp(
-        int(sum([x.avglayersize for x in lst_parents])/float(len(lst_parents))
-        +random.randint(-100, 100)/100.0),
-        1, 7
-    )
     new_agent.brain_layers = [
             max(1, new_agent.avglayersize+random.randint(-new_agent.variance, new_agent.variance))
             for _ in range(new_agent.braindepth)
@@ -115,11 +110,11 @@ def new_gene_from(lst_parents: list) -> AgentGene:
     new_agent.freq_learning = clamp(
         sum([x.freq_learning for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/10000.0,
-        0, 1)
+        rules["GeneMinFreqLearning"], rules["GeneMaxFreqLearning"])
     new_agent.learning_rate = clamp(
         sum([x.learning_rate for x in lst_parents])/float(len(lst_parents))
         + random.randint(-100, 100)/100000.0,
-        0.000001, 1)
+        rules["GeneMinLearningRate"], rules["GeneMaxLearningRate"])
     #
     new_agent.size = new_agent.max_energy*random.randint(50, 150)/1000.0
     new_agent.color = (
