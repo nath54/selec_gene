@@ -6,24 +6,24 @@ rules = {
 
     # Spawn
     "AgentsSpawnSpots": ["random", 20, 3], # ["random", number of species, number of entities for each species] or  [Circles : (x, y, radius, number of species that will be close enought to reproduce)]
-    "VegetationSpawnSpots": [(3840/2, 2048/2, 3840/2, 6000)],
+    "VegetationSpawnSpots": [(3840/2, 2048/2, 1024/2, 3000)],
 
     # Agent count
-    "AgentCellSize": 128,
+    "AgentCellSize": 256,
 
     # Vegetation
     "VegetationGridSize": 64, # Pour éviter les problèmes, on préferera que ce soit un diviseur de WorldSize x et y
     "VegetationGridMax": 100,
-    "VegetationReproductionCell": 1.04, # à chaque frame, la végétation est multipliée par cette valeur
-    "VegetationReproductionSideCells": 0.01,
+    "VegetationReproductionCell": 1.02, # à chaque frame, la végétation est multipliée par cette valeur
+    "VegetationReproductionSideCells": 0.005,
     
     # Vision
-    "VisionSize": (100, 100), # Les agents voient un carré de 100x100 avec eux au centre
+    "VisionSize": (50, 50), # Les agents voient un carré de 100x100 avec eux au centre
 
     # Reproduction
     "GeneDistSameSpecie": 10.0,
-    "ReproductionMinAge": 0.1, # L'âge minimum pour se reproduire
-    "ReproductionMaxAge": 0.8, # l'âge maximal pour se reproduire
+    "ReproductionMinAge": 0.5, # L'âge minimum pour se reproduire
+    "ReproductionMaxAge": 0.9, # l'âge maximal pour se reproduire
     "SoloReproductionEnergy": 0.85, # L'énergie dépensée pour faire un enfant
     "BabySpawnDistance": 30,
 
@@ -35,12 +35,12 @@ rules = {
     "EnergyRecoverPerVegetation": 10.0,
 
     # Aging
-    "BaseAgingLossPerFrame": 10.0,
+    "BaseAgingLossPerFrame": 1.0,
 
     # Min-Max agent gene parameters
     ## Energy
     "GeneMinEnergy": 50.0,
-    "GeneMaxEnergy": 500.0,
+    "GeneMaxEnergy": 400.0,
     "GeneEDigits": 10.0,
     ## Aging
     "GeneMinAging": 5.0,
@@ -72,19 +72,19 @@ rules = {
     "GeneEVDigits": 100.0,
     ## NumVegEat
     "GeneMinNumVegEat": 0.5,
-    "GeneMaxNumVegEat": 5.0,
+    "GeneMaxNumVegEat": 10.0,
     "GeneNVEDigits": 100.0,
     ## Rot Acc
     "GeneMinRotAcc": 0.0,
-    "GeneMaxRotAcc": 10.0,
+    "GeneMaxRotAcc": 0.2,
     "GeneRotAccDigits": 10.0,
     ## Dir acc
     "GeneMinDirAcc": 0.0,
-    "GeneMaxDirAcc": 10.0,
+    "GeneMaxDirAcc": 30.0,
     "GeneDADigits": 10.0,
     ## Global acc
     "GeneMinGlobalAcc": 0.0,
-    "GeneMaxGlobalAcc": 10.0,
+    "GeneMaxGlobalAcc": 30.0,
     "GeneGADigits": 10.0,
     ## Brain Depth
     "GeneMinBrainDepth": 2,

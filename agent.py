@@ -114,7 +114,7 @@ def new_gene_from(lst_parents: list) -> AgentGene:
         + random.randint(-100, 100)/100000.0,
         rules["GeneMinLearningRate"], rules["GeneMaxLearningRate"])
     #
-    new_agent.size = new_agent.max_energy*random.randint(50, 150)/1000.0
+    new_agent.size = new_agent.max_energy*random.randint(90, 110)/500.0
     new_agent.color = int((sum([x.color for x in lst_parents])/len(lst_parents)+random.randint(-2,2))%360)
     #
     return new_agent

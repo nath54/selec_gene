@@ -105,11 +105,12 @@ def affichage(sim: Simulation) -> Image:
         p2: tuple = (float(a.pos[0]+a.gene.size*math.cos(a.angle+math.pi-b)/2.0), float(a.pos[1]+a.gene.size*math.sin(a.angle+math.pi-b)/2.0))
         p3: tuple = (float(a.pos[0]+a.gene.size*math.cos(a.angle+math.pi+b)/2.0), float(a.pos[1]+a.gene.size*math.sin(a.angle+math.pi+b)/2.0))
         clhsv: tuple = (
-            a.gene.color,
-            100,
-            a.current_energy/a.gene.max_energy*50.0,
+            a.gene.color/360.0,
+            (a.current_age/a.gene.aging)/2.0,
+            a.current_energy/a.gene.max_energy,
         )
-        im.polygon([p1, p2, p3], fill=hsv_to_rgb(*clhsv), outline=(int(st*255), int((1-st)*255), 0))
+        cl: tuple = hsv_to_rgb(*clhsv)
+        im.polygon([p1, p2, p3], fill=(int(cl[0]), int(cl[1]), int(cl[2])), outline=(int(st*255), int((1-st)*255), 0))
     return img
     
 
@@ -253,10 +254,10 @@ def main_simulation():
             pass
             # Mort
             if a.current_energy <= 0 or a.current_age <= 0 or a.current_life <= 0 or sim.get_popsize_of_cell(a.current_cell) > a.gene.max_agent_in_same_cell:
+                sim.remove_from_cell(a.current_cell, a)
                 morts.append(a)
         # Les morts disparaissent
         for ma in morts:
-            sim.remove_from_cell(ma.current_cell, ma)
             sim.agents.remove(ma)
         # Les bébés apparaissent
         sim.agents += babies
