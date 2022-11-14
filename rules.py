@@ -5,8 +5,11 @@ rules = {
     "WorldSize": (3840, 2048),
 
     # Spawn
-    "AgentsSpawnSpots": ["random", 15, 3], # ["random", number of species, number of entities for each species] or  [Circles : (x, y, radius, number of species that will be close enought to reproduce)]
+    "AgentsSpawnSpots": ["random", 20, 3], # ["random", number of species, number of entities for each species] or  [Circles : (x, y, radius, number of species that will be close enought to reproduce)]
     "VegetationSpawnSpots": [(3840/2, 2048/2, 3840/2, 6000)],
+
+    # Agent count
+    "AgentCellSize": 128,
 
     # Vegetation
     "VegetationGridSize": 64, # Pour éviter les problèmes, on préferera que ce soit un diviseur de WorldSize x et y
@@ -28,7 +31,7 @@ rules = {
     "WorldFriction": 0.95, # Les vitesses sont multipliées par la friction chaque frame
 
     # Energy
-    "BaseEnergyLossPerFrame": 10.0,
+    "BaseEnergyLossPerFrame": 20.0,
     "EnergyRecoverPerVegetation": 10.0,
 
     # Aging
@@ -51,6 +54,10 @@ rules = {
     "GeneMinLifeRecup": 0.001,
     "GeneMaxLifeRecup": 1.0,
     "GeneLRecDigits": 1000.0,
+    ## MaxAgentInSameCell
+    "GeneMinMaxAgentInSameCell": 0.0,
+    "GeneMaxMaxAgentInSameCell": 25.0,
+    "GeneMAISCDigits": 10,
     ## Reproduction
     "GeneMinReproductionNumber": 0.0,
     "GeneMaxReproductionNumber": 1.0,

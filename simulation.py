@@ -5,6 +5,7 @@ import time
 import random
 from PIL import Image, ImageDraw
 import os
+import copy
 
 from world import *
 from agent import *
@@ -13,10 +14,33 @@ from rules import rules
 s: int = rules["VegetationGridSize"]
 
 class Simulation:
+    def add_to_cel(self, ic: str, ag: Agent):
+        if not ic in self.cells.keys():
+            self.cells[ic]=set()
+        if not ag in self.cells[ic]:
+            self.cells[ic].add(ag)
+
+    def remove_from_cell(self, ic: str, ag_to_rem: Agent):
+        if ic in self.cells.keys():
+            self.cells[ic].remove(ag_to_rem)        
+
+    def get_popsize_of_cell(self, ic: str) -> int:
+        return len(self.cells[ic])
+
+    def get_pop_of_cell(self, ic: str) -> set:
+        return self.cells[ic]
+
+    def pos_to_cell(self, x: int, y: int) -> str:
+        cx: int = x//self.ct
+        cy: int = y//self.ct
+        return str(cx)+"_"+str(cy)
+
     def __init__(self):
         # On crée les agents
         self.agents: list = []
         self.vegetation: np.matrix = np.zeros([rules["WorldSize"][0]//rules["VegetationGridSize"], rules["WorldSize"][1]//rules["VegetationGridSize"]], dtype=float)
+        self.ct: int = rules["AgentCellSize"]
+        self.cells: dict = {}
         #
         if rules["AgentsSpawnSpots"][0] == "random":
             for _ in range(rules["AgentsSpawnSpots"][1]):
@@ -31,6 +55,8 @@ class Simulation:
                     b: AgentBrain = AgentBrain(g.brain_layers)
                     ag: Agent = Agent(g,b)
                     ag.pos = [x2, y2]
+                    ag.current_cell = self.pos_to_cell(x2, y2)
+                    self.add_to_cel(ag.current_cell, ag)
                     self.agents.append(ag)
         else:
             for c in rules["AgentsSpawnSpots"]:
@@ -45,7 +71,12 @@ class Simulation:
                     b: AgentBrain = AgentBrain(g.brain_layers)
                     ag: Agent = Agent(g,b)
                     ag.pos = [x2, y2]
+                    ag.current_cell = self.pos_to_cell(x2, y2)
+                    self.add_to_cel(ag.current_cell, ag)
                     self.agents.append(ag)
+        # Pour éviter que certaines morts ne tuent des populations entières spécifiquement,
+        # pour mieux répartir les population :
+        random.shuffle(self.agents)
         # On crée la végétation
         for c in rules["VegetationSpawnSpots"]:
             x: int = c[0]
@@ -66,13 +97,19 @@ def affichage(sim: Simulation) -> Image:
         for y in range(sim.vegetation.shape[1]):
             im.rectangle([(int(x*s), int(y*s)), (int((x+1)*s), int((y+1)*s))], fill=(0,int(sim.vegetation[x,y]/rules["VegetationGridMax"]*100),0))
     # On affiche les agents
-    for a in sim.agents:
+    for j in range(len(sim.agents)):
+        a: Agent = sim.agents[j]
         b: float = 0.7
         st: float = (a.sentiment+1.0)/2.0
         p1: tuple = (float(a.pos[0]+a.gene.size*math.cos(a.angle)/2.0), float(a.pos[1]+a.gene.size*math.sin(a.angle)/2.0))
         p2: tuple = (float(a.pos[0]+a.gene.size*math.cos(a.angle+math.pi-b)/2.0), float(a.pos[1]+a.gene.size*math.sin(a.angle+math.pi-b)/2.0))
         p3: tuple = (float(a.pos[0]+a.gene.size*math.cos(a.angle+math.pi+b)/2.0), float(a.pos[1]+a.gene.size*math.sin(a.angle+math.pi+b)/2.0))
-        im.polygon([p1, p2, p3], fill=a.gene.color, outline=(int(st*255), int((1-st)*255), 0))
+        clhsv: tuple = (
+            a.gene.color,
+            100,
+            a.current_energy/a.gene.max_energy*50.0,
+        )
+        im.polygon([p1, p2, p3], fill=hsv_to_rgb(*clhsv), outline=(int(st*255), int((1-st)*255), 0))
     return img
     
 
@@ -173,6 +210,12 @@ def main_simulation():
                 clamp(a.pos[1], a.gene.size, rules["WorldSize"][1]-a.gene.size)
             elif rules["WorldType"] == "finite_loop":
                 a.pos[0],a.pos[1] = loop(a.pos[0], a.pos[1], rules["WorldSize"][0], rules["WorldSize"][1])
+            #
+            pot_new_cell: str = sim.pos_to_cell(a.pos[0], a.pos[1])
+            if pot_new_cell != a.current_cell:
+                sim.remove_from_cell(a.current_cell, a)
+                a.current_cell = pot_new_cell
+                sim.add_to_cel(a.current_cell, a)
             #TODO: collisions (nourriture vege)
             cx: int = clamp(a.pos[0]//rules["VegetationGridSize"], 0, rules["WorldSize"][0]//rules["VegetationGridSize"]-1)
             cy: int = clamp(a.pos[1]//rules["VegetationGridSize"], 0, rules["WorldSize"][1]//rules["VegetationGridSize"]-1)
@@ -189,12 +232,16 @@ def main_simulation():
                 if age_prop >= rules["ReproductionMinAge"] and age_prop <= rules["ReproductionMaxAge"] and a.current_energy/a.gene.max_energy >= rules["SoloReproductionEnergy"]:
                     ng: AgentGene = new_gene_from([a.gene])
                     nb: AgentBrain = AgentBrain(ng.brain_layers)
+                    nb.state_dict = copy.deepcopy(a.brain.state_dict) # Le bébé "récupère" les connaissances de son père
                     nag: Agent = Agent(ng, nb)
                     nag.pos = [a.pos[0]+random.randint(-rules["BabySpawnDistance"], rules["BabySpawnDistance"]), a.pos[1]+random.randint(-rules["BabySpawnDistance"], rules["BabySpawnDistance"])]
+                    nag.current_cell = sim.pos_to_cell(nag.pos[0], nag.pos[1])
+                    sim.add_to_cel(nag.current_cell, nag)
                     babies.append(nag)
                     #
                     a.current_energy -= a.gene.max_energy*rules["SoloReproductionEnergy"]
             else:
+                #TODO: multiple collisions for reproduction
                 pass
             # Diminution d'énergie
             a.current_energy -= rules["BaseEnergyLossPerFrame"]
@@ -205,10 +252,11 @@ def main_simulation():
             #TODO: apprentissage du cerveau
             pass
             # Mort
-            if a.current_energy <= 0 or a.current_age <= 0 or a.current_life <= 0:
+            if a.current_energy <= 0 or a.current_age <= 0 or a.current_life <= 0 or sim.get_popsize_of_cell(a.current_cell) > a.gene.max_agent_in_same_cell:
                 morts.append(a)
         # Les morts disparaissent
         for ma in morts:
+            sim.remove_from_cell(ma.current_cell, ma)
             sim.agents.remove(ma)
         # Les bébés apparaissent
         sim.agents += babies
